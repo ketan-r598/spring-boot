@@ -1,0 +1,10 @@
+task:
+  limits:
+    max-tasks: 1000
+    max-title-length: 120
+  storage:
+    file-path: ${user.home}/tasks-prod.json
+    format: json
+  notifications:
+    enabled: true
+    channel: console
