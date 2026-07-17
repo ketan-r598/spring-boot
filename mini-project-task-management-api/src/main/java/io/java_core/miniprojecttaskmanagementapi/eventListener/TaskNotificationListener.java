@@ -2,10 +2,12 @@ package io.java_core.miniprojecttaskmanagementapi.eventListener;
 
 import io.java_core.miniprojecttaskmanagementapi.event.TaskCompletedEvent;
 import io.java_core.miniprojecttaskmanagementapi.event.TaskCreatedEvent;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "task.notification.enabled", havingValue = "true")
 public class TaskNotificationListener {
 
     @EventListener

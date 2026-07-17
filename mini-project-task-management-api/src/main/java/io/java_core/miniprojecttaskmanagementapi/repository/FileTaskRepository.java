@@ -23,7 +23,7 @@ import java.util.Optional;
 @Profile("prod")
 public class FileTaskRepository implements TaskRepository {
 
-    private TaskProperties taskProperties;
+    private final TaskProperties taskProperties;
     private Map<String, Task> taskMap;
 
     private final ObjectMapper mapper;

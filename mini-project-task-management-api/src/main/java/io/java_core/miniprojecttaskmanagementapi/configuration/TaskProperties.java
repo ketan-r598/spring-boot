@@ -8,15 +8,20 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
+
 @ConfigurationProperties(prefix = "task")
 @Validated
 public class TaskProperties {
 
+    @Valid
     private final Limits limits = new Limits();
-    private final Storage storage = new Storage();
-    private final Notification notification = new Notification();
 
     @Valid
+    private final Storage storage = new Storage();
+
+    @Valid
+    private final Notification notification = new Notification();
+
     public class Limits {
 
         @Min(1)
@@ -42,7 +47,6 @@ public class TaskProperties {
         }
     }
 
-    @Valid
     public class Storage {
 
         @NonNull
@@ -70,7 +74,6 @@ public class TaskProperties {
         }
     }
 
-    @Valid
     public class Notification {
 
         private boolean enabled = false;

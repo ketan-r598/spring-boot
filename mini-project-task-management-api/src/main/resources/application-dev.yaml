@@ -5,6 +5,6 @@ task:
   storage:
     file-path: ${user.home}/tasks-dev.json
     format: json
-  notifications:
+  notification:
     enabled: true
     channel: console

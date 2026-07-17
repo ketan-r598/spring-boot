@@ -21,7 +21,7 @@ public class TaskService {
     private final ApplicationEventPublisher eventPublisher;
     private final TaskProperties taskProperties;
 
-    private ObjectFactory<AuditEntry> auditEntry;
+    private final ObjectFactory<AuditEntry> auditEntry;
 
     public TaskService(TaskRepository taskRepo, ApplicationEventPublisher eventPublisher, ObjectFactory<AuditEntry> auditEntry, TaskProperties taskProperties) {
         this.taskRepo = taskRepo;
