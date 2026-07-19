@@ -38,6 +38,9 @@ public class MiniProjectTaskManagementApiApplication {
             taskService.getAllTasks().forEach(System.out::println);
 
             System.out.println(Thread.currentThread().getName());
+        } catch (Exception e) {
+            System.err.println("Something went wrong : " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

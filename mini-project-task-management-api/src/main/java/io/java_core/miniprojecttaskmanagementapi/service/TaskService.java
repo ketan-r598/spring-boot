@@ -6,6 +6,9 @@ import io.java_core.miniprojecttaskmanagementapi.model.AuditEntry;
 import io.java_core.miniprojecttaskmanagementapi.model.Task;
 import io.java_core.miniprojecttaskmanagementapi.model.TaskStatus;
 import io.java_core.miniprojecttaskmanagementapi.repository.TaskRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -17,36 +20,49 @@ import java.util.UUID;
 @Service
 public class TaskService {
 
+    private final Counter taskCreatedCounter;
+    private final Counter taskCompletedCounter;
+    private final Timer createTaskTimer;
+
     private final TaskRepository taskRepo;
     private final ApplicationEventPublisher eventPublisher;
     private final TaskProperties taskProperties;
 
     private final ObjectFactory<AuditEntry> auditEntry;
 
-    public TaskService(TaskRepository taskRepo, ApplicationEventPublisher eventPublisher, ObjectFactory<AuditEntry> auditEntry, TaskProperties taskProperties) {
+
+    public TaskService(TaskRepository taskRepo, ApplicationEventPublisher eventPublisher, ObjectFactory<AuditEntry> auditEntry, TaskProperties taskProperties, MeterRegistry meterRegistry) {
         this.taskRepo = taskRepo;
         this.eventPublisher = eventPublisher;
         this.auditEntry = auditEntry;
         this.taskProperties = taskProperties;
+        this.taskCreatedCounter = meterRegistry.counter("task.created");
+        this.taskCompletedCounter = meterRegistry.counter("task.completed");
+        this.createTaskTimer = Timer.builder("task.created.duration")
+                .description("Time taken to create a task")
+                .register(meterRegistry);
     }
 
-    public Task createTask(String title, String description) {
+    public Task createTask(String title, String description) throws Exception {
 
-        System.out.println("Max task limit: " + taskProperties.getLimits().getMaxTasks());
-        if (taskRepo.findAll().size() >= taskProperties.getLimits().getMaxTasks()) {
-            throw new IllegalArgumentException("Task Limit Exceeded...");
-        }
+        return createTaskTimer.recordCallable(() -> {
+            System.out.println("Max task limit: " + taskProperties.getLimits().getMaxTasks());
+            if (taskRepo.findAll().size() >= taskProperties.getLimits().getMaxTasks()) {
+                throw new IllegalArgumentException("Task Limit Exceeded...");
+            }
 
-        Task savedTask = taskRepo.save(new Task(UUID.randomUUID().toString(), title, description, TaskStatus.PENDING));
+            Task savedTask = taskRepo.save(new Task(UUID.randomUUID().toString(), title, description, TaskStatus.PENDING));
 
 
-        eventPublisher.publishEvent(new TaskCreatedEvent(this, savedTask));
+            eventPublisher.publishEvent(new TaskCreatedEvent(this, savedTask));
 
-        System.out.println();
-        System.out.println(" [AUDIT] | Task Created | " + auditEntry.getObject() + " | [ " + savedTask.id() + " ]");
-        System.out.println();
+            System.out.println();
+            System.out.println(" [AUDIT] | Task Created | " + auditEntry.getObject() + " | [ " + savedTask.id() + " ]");
+            System.out.println();
 
-        return savedTask;
+            taskCreatedCounter.increment();
+            return savedTask;
+        });
 
 
     }
@@ -65,6 +81,7 @@ public class TaskService {
         System.out.println(" [AUDIT] | Task Completed | " + auditEntry.getObject() + " | [ " + newTask.id() + " ]");
         System.out.println();
 
+        taskCompletedCounter.increment();
         return newTask;
     }
 

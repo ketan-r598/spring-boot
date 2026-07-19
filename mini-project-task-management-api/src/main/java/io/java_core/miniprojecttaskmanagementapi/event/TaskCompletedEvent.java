@@ -5,7 +5,7 @@ import org.springframework.context.ApplicationEvent;
 
 public class TaskCompletedEvent extends ApplicationEvent {
 
-    private Task task;
+    private final Task task;
 
     public TaskCompletedEvent(Object source, Task task) {
         super(source);
